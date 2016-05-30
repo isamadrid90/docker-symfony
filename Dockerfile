@@ -10,19 +10,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       git \
       curl \
       nginx \
-      sqlite3 \
+      mysql-client \
       php5 \
       php5-curl \
       php5-fpm \
       php5-intl \
-      php5-sqlite \
       php5-pgsql \
       php5-mysql \
       php5-memcache \
       php5-apcu \
       php-twig \
       supervisor \
-    && rm -rf /var/lib/apt/lists/*
+      php5-xdebug \
+      vim
 
 # Configure PHP-FPM & Nginx
 RUN sed -e 's/;daemonize = yes/daemonize = no/' -i /etc/php5/fpm/php-fpm.conf \
@@ -31,6 +31,16 @@ RUN sed -e 's/;daemonize = yes/daemonize = no/' -i /etc/php5/fpm/php-fpm.conf \
     && echo "opcache.enable=1" >> /etc/php5/mods-available/opcache.ini \
     && echo "opcache.enable_cli=1" >> /etc/php5/mods-available/opcache.ini \
     && echo "\ndaemon off;" >> /etc/nginx/nginx.conf
+
+RUN echo 'date.timezone = "Europe/Madrid";' >> /etc/php5/cli/php.ini
+
+RUN echo "zend_extension=$(find /usr/lib/php5/ -name xdebug.so)" > /etc/php5/fpm/conf.d/20-xdebug.ini \
+    && echo "xdebug.remote_enable=1" >> /etc/php5/fpm/conf.d/20-xdebug.ini \
+    && echo "xdebug.remote_autostart=1" >> /etc/php5/fpm/conf.d/20-xdebug.ini \
+    && echo "xdebug.remote_host=localhost" >> /etc/php5/fpm/conf.d/20-xdebug.ini \
+    && echo "xdebug.remote_port=9000" >> /etc/php5/fpm/conf.d/20-xdebug.ini \
+    && echo "xdebug.remote_connect_back=1" >> /etc/php5/fpm/conf.d/20-xdebug.ini
+
 
 ADD supervisor.conf /etc/supervisor/conf.d/supervisor.conf
 ADD vhost.conf /etc/nginx/sites-available/default
